@@ -1,6 +1,7 @@
 package springbook.user.dao;
 
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
@@ -10,6 +11,8 @@ import java.sql.SQLException;
  */
 public class DconnectionMaker implements ConnectionMaker {
     public Connection markConnection() throws ClassNotFoundException, SQLException {
-        return null;
+        Class.forName("com.mysql.jdbc.Driver");
+        Connection c = DriverManager.getConnection("jdbc:mysql://localhost/toby", "toby", "toby2015");
+        return c;
     }
 }
