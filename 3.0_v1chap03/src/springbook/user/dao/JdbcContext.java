@@ -1,6 +1,6 @@
 package springbook.user.dao;
 
-import javax.activation.DataSource;
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -44,6 +44,14 @@ public class JdbcContext {
                 }
             }
         }
+    }
 
+    public void executeSql(final String query) throws SQLException{
+        workWithStatementStarategy(
+            new StatementStarategy(){
+                public PreparedStatement makeStatement(Connection c) throws SQLException {
+                    return c.prepareStatement(query);
+                }
+            });
     }
 }

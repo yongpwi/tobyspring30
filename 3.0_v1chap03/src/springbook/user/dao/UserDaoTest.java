@@ -2,8 +2,11 @@ package springbook.user.dao;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import springbook.user.domain.User;
 
 import javax.sql.DataSource;
@@ -17,8 +20,8 @@ import static org.junit.Assert.assertThat;
  *
  * @author yong
  */
-//@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(locations="/test-applicationContext.xml")
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations="/test-applicationContext.xml")
 public class UserDaoTest {
     UserDao dao;
 

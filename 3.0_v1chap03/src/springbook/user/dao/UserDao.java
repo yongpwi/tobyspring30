@@ -64,12 +64,7 @@ public class UserDao {
     }
 
     public void deleteAll() throws SQLException{
-        this.jdbcContext.workWithStatementStarategy(
-            new StatementStarategy(){
-                public PreparedStatement makeStatement(Connection c) throws SQLException {
-                    return c.prepareStatement("delete from users");
-                }
-        });
+        this.jdbcContext.executeSql("delete from users");
     }
 
     public int getCount() throws SQLException{
@@ -139,4 +134,5 @@ public class UserDao {
             }
         }
     }
+
 }
