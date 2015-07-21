@@ -21,6 +21,8 @@ import java.util.List;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
+import static springbook.user.service.UserService.MIN_LOGCOUNT_FOR_SILVER;
+import static springbook.user.service.UserService.MIN_RECCOMEND_FOR_GOLD;
 
 /**
  * Created by yong on 2015-07-06.
@@ -47,17 +49,18 @@ public class UserDaoTest {
 
     @Before
     public void setUp(){
-        this.user = new User("pear", "피어", "jr", Level.BASIC, 1, 10);
-        this.user2 = new User("pear2", "피어2", "jr2", Level.SILVER, 2, 20);
-        this.user3 = new User("pear3", "피어3", "jr3", Level.GOLD, 3, 30);
-
+//        this.user = new User("pear", "피어", "jr", Level.BASIC, 1, 10);
+//        this.user2 = new User("pear2", "피어2", "jr2", Level.SILVER, 2, 20);
+//        this.user3 = new User("pear3", "피어3", "jr3", Level.GOLD, 3, 30);
+//
         users = Arrays.asList(
-            new User("pear", "피어", "jr", Level.BASIC, 1, 10),
-            new User("pear2", "피어2", "jr2", Level.SILVER, 2, 20),
-            new User("pear3", "피어3", "jr3", Level.GOLD, 3, 30),
-            new User("pear4", "피어4", "jr4", Level.BASIC, 4, 40),
-            new User("pear5", "피어5", "jr5", Level.GOLD, 5, 50)
+            new User("pear", "피어", "jr", Level.BASIC, MIN_LOGCOUNT_FOR_SILVER - 1, 10),
+            new User("pear2", "피어2", "jr2", Level.SILVER, MIN_LOGCOUNT_FOR_SILVER, 20),
+            new User("pear3", "피어3", "jr3", Level.GOLD, 3, MIN_RECCOMEND_FOR_GOLD - 1),
+            new User("pear4", "피어4", "jr4", Level.BASIC, 4, MIN_RECCOMEND_FOR_GOLD),
+            new User("pear5", "피어5", "jr5", Level.GOLD, 5, Integer.MAX_VALUE)
         );
+//        user = new User();
     }
 
     @Test
@@ -183,23 +186,62 @@ public class UserDaoTest {
     @Test
     public void upgradeLevels(){
         dao.deleteAll();
-
-        for(User user : users){
+        for(User user : users) {
             dao.add(user);
         }
-
         userService.updateLevels();
 
-        checkLevel(users.get(0), Level.SILVER);
-        checkLevel(users.get(1), Level.GOLD);
-        checkLevel(users.get(2), Level.GOLD);
-        checkLevel(users.get(3), Level.SILVER);
-        checkLevel(users.get(4), Level.GOLD);
+        checkLevelUpgrade(users.get(0), false);
+        checkLevelUpgrade(users.get(1), true);
+        checkLevelUpgrade(users.get(2), false);
+        checkLevelUpgrade(users.get(3), true);
+        checkLevelUpgrade(users.get(4), false);
     }
+
+    private void checkLevelUpgrade(User user, boolean upgraded) {
+        User userUpdate = dao.get(user.getId());
+        if(upgraded){
+            assertThat(userUpdate.getLevel(), is(user.getLevel().nextLevel()));
+        } else {
+            assertThat(userUpdate.getLevel(), is(user.getLevel()));
+        }
+    }
+
+
+    @Test(expected = IllegalStateException.class)
+    public void cannotUpgradeLevel(){
+        Level[] levels = Level.values();
+        for(Level level : levels){
+            if(level.nextLevel() != null){
+                continue;
+            }
+            user.setLevel(level);
+            user.upgradeLevel();
+        }
+    }
+
 
     private void checkLevel(User user, Level expectedLevel) {
         User userUpdate = dao.get(user.getId());
         assertThat(userUpdate.getLevel(), is(expectedLevel));
+    }
+
+    @Test
+    public void add(){
+        dao.deleteAll();
+
+        User userWithLevel = users.get(4);
+        User userWithoutLevel = users.get(0);
+        userWithoutLevel.setLevel(null);
+
+        userService.add(userWithLevel);
+        userService.add(userWithoutLevel);
+
+        User userWithLevelReal = dao.get(userWithLevel.getId());
+        User userWithoutLevelRead = dao.get(userWithoutLevel.getId());
+
+        assertThat(userWithLevelReal.getLevel(), is(userWithLevel.getLevel()));
+        assertThat(userWithoutLevelRead.getLevel(), is(Level.BASIC));
     }
 
 }
