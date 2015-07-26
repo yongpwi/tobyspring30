@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
+import static junit.framework.Assert.fail;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertThat;
 import static springbook.user.service.UserService.MIN_LOGCOUNT_FOR_SILVER;
@@ -189,7 +190,11 @@ public class UserDaoTest {
         for(User user : users) {
             dao.add(user);
         }
-        userService.updateLevels();
+        try {
+            userService.updateLevels();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         checkLevelUpgrade(users.get(0), false);
         checkLevelUpgrade(users.get(1), true);
@@ -244,4 +249,42 @@ public class UserDaoTest {
         assertThat(userWithoutLevelRead.getLevel(), is(Level.BASIC));
     }
 
+    static class TestUserService extends UserService{
+        private String id;
+
+        private TestUserService(String id){
+            this.id = id;
+        }
+
+        protected void upgradeLevel(User user){
+            if(user.getId().equals(this.id))
+                throw new TestUserServiceException();
+            super.upgradeLevel(user);
+        }
+
+        private class TestUserServiceException extends RuntimeException {
+        }
+    }
+
+    @Test
+    public void upgradeAllOrNotining() throws Exception{
+        UserService testUserService = new TestUserService(users.get(3).getId());
+        testUserService.setUserDao(this.dao);
+        testUserService.setDataSource(this.dataSource);
+
+        dao.deleteAll();
+
+        for(User user : users){
+            dao.add(user);
+        }
+
+        try{
+            testUserService.updateLevels();
+            fail("TestUserServiceException expected");
+        } catch(TestUserService.TestUserServiceException e){
+
+        }
+
+        checkLevelUpgrade(users.get(1), false);
+    }
 }
